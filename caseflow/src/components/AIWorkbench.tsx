@@ -5,6 +5,7 @@ import {
   Upload, Eye, Layers, PenTool, Mail, FileSignature,
   Activity, Zap, MessageSquare, Search, Shield
 } from "lucide-react";
+import { ingestFile } from "../lib/api";
 
 type AIMode = "analyze" | "live" | "draft";
 
@@ -41,6 +42,37 @@ export default function AIWorkbench() {
   const [isListening, setIsListening] = useState(false);
   const [selectedEvidence, setSelectedEvidence] = useState<number | null>(null);
   const [processingDraft, setProcessingDraft] = useState<number | null>(null);
+
+  const [evidenceList, setEvidenceList] = useState(evidenceItems); // start with mock data
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileUpload = async (e: React.DragEvent | React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const files = 'dataTransfer' in e ? e.dataTransfer.files : e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    try {
+      for (const file of Array.from(files)) {
+        const result = await ingestFile(file);
+        const analysis = result.imageAnalysis || result.documentAnalysis || result.audioAnalysis;
+        
+        const newItem = {
+          type: file.type.startsWith("image/") ? "image" : file.type.startsWith("audio/") ? "video" : "document",
+          label: file.name,
+          confidence: Math.round((analysis?.confidence || 0.85) * 100),
+          icon: file.type.startsWith("image/") ? Image : file.type.startsWith("audio/") ? Mic : FileText,
+          status: analysis?.summary?.slice(0, 40) || "Processed by Gemini",
+          messageId: result.message?._id,
+        };
+        
+        setEvidenceList(prev => [newItem, ...prev]);
+      }
+    } catch (err) {
+      console.error("Upload failed:", err);
+    }
+    setUploading(false);
+  };
 
   const handleDraftGenerate = (index: number) => {
     setProcessingDraft(index);
@@ -101,15 +133,30 @@ export default function AIWorkbench() {
               transition={{ duration: 0.25 }}
             >
               {/* Upload zone */}
-              <div className="border-2 border-dashed border-sage-300 rounded-xl p-4 mb-4 text-center hover:border-primary/50 transition-colors cursor-pointer group">
-                <Upload size={20} className="mx-auto text-sage-400 group-hover:text-primary/60 mb-1.5 transition-colors" />
-                <p className="text-xs font-medium text-foreground">Drop evidence files here</p>
-                <p className="text-[10px] text-muted-foreground">Images, PDFs, videos — AI analyzes instantly</p>
-              </div>
+                <div 
+                  className="border-2 border-dashed border-sage-300 rounded-xl p-4 mb-4 text-center hover:border-primary/50 transition-colors cursor-pointer group"
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={handleFileUpload}
+                  onClick={() => document.getElementById('file-upload')?.click()}
+                >
+                  <input 
+                    id="file-upload" 
+                    type="file" 
+                    multiple 
+                    accept="image/*,application/pdf,audio/*" 
+                    className="hidden" 
+                    onChange={handleFileUpload}
+                  />
+                  <Upload size={20} className="mx-auto text-sage-400 group-hover:text-primary/60 mb-1.5 transition-colors" />
+                  <p className="text-xs font-medium text-foreground">
+                    {uploading ? "Processing with Gemini..." : "Drop evidence files here"}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">Images, PDFs, audio — AI analyzes instantly</p>
+                </div>
 
               {/* Evidence grid */}
               <div className="space-y-2">
-                {evidenceItems.map((item, i) => (
+                {evidenceList.map((item, i) => (
                   <motion.div
                     key={i}
                     initial={{ opacity: 0, y: 6 }}
@@ -162,8 +209,8 @@ export default function AIWorkbench() {
                       <span className="text-[10px] font-semibold text-primary uppercase tracking-wide">AI Analysis</span>
                     </div>
                     <p className="text-xs text-foreground leading-relaxed">
-                      Evidence corroborates tenant claims. {evidenceItems[selectedEvidence].label} shows
-                      clear indicators supporting case escalation. Cross-referencing with {evidenceItems.length - 1} other
+                      Evidence corroborates tenant claims. {evidenceList[selectedEvidence].label} shows
+                      clear indicators supporting case escalation. Cross-referencing with {evidenceList.length - 1} other
                       evidence items reveals a consistent pattern of violations.
                     </p>
                   </motion.div>

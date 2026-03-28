@@ -1,176 +1,140 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Users, UserPlus, Sparkles, Check, ArrowRight, Brain } from "lucide-react";
-import { mockCases, taxonomyColors } from "@/lib/mockData";
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { TrendingUp, TrendingDown, Clock, Smile, BarChart3 } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
+import { apiGet } from "../lib/api";
 
-interface AssignmentSlot {
-  caseId: string;
-  recommended: string[];
-  assigned: string[];
-  aiReason: string;
-}
+export default function ExecDashboard() {
+  const [caseStats, setCaseStats] = useState<any>(null);
+  const [satisfaction, setSatisfaction] = useState<any>(null);
+  const [volume, setVolume] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-const caseworkers = [
-  { name: "Sarah Chen", specialty: "Housing, Compliance", load: 4, avatar: "SC" },
-  { name: "Marcus Webb", specialty: "Environmental, Permits", load: 2, avatar: "MW" },
-  { name: "Priya Patel", specialty: "Benefits, Civil Rights", load: 3, avatar: "PP" },
-  { name: "James Torres", specialty: "Infrastructure", load: 1, avatar: "JT" },
-];
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [statsRes, satRes, volRes] = await Promise.all([
+          apiGet("/cases/stats"),
+          apiGet("/orchestrate/satisfaction/stats").catch(() => null),
+          apiGet("/trends/volume?days=7").catch(() => []),
+        ]);
+        setCaseStats(statsRes);
+        setSatisfaction(satRes);
 
-const assignments: AssignmentSlot[] = mockCases.filter(c => c.status === "pending" || c.status === "in-progress").map(c => ({
-  caseId: c.id,
-  recommended: [c.recommendedAssignee],
-  assigned: c.assignee ? [c.assignee] : [],
-  aiReason: c.assigneeReason,
-}));
+        // Format volume data for the chart
+        const formatted = (volRes || []).map((d: any) => ({
+          name: new Date(d.date).toLocaleDateString("en-US", { weekday: "short" }),
+          cases: d.count,
+        }));
+        setVolume(formatted.length > 0 ? formatted : [
+          { name: "Mon", cases: 0 }, { name: "Tue", cases: 0 },
+          { name: "Wed", cases: 0 }, { name: "Thu", cases: 0 },
+          { name: "Fri", cases: 0 }, { name: "Sat", cases: 0 },
+          { name: "Sun", cases: 0 },
+        ]);
+      } catch (err) {
+        console.error("Failed to fetch exec data:", err);
+      }
+      setLoading(false);
+    }
+    fetchData();
+  }, []);
 
-export default function ManagerAssignment() {
-  const [selectedCase, setSelectedCase] = useState<string | null>(assignments[0]?.caseId || null);
-  const [assignedMap, setAssignedMap] = useState<Record<string, string[]>>(() => {
-    const map: Record<string, string[]> = {};
-    assignments.forEach(a => { map[a.caseId] = [...a.assigned]; });
-    return map;
-  });
+  const metrics = [
+    {
+      label: "Cases Processed",
+      value: caseStats ? caseStats.total.toLocaleString() : "...",
+      change: 12.4,
+      icon: BarChart3,
+    },
+    {
+      label: "Avg Resolution Time",
+      value: caseStats?.avgResolutionDays ? `${caseStats.avgResolutionDays} days` : "... days",
+      change: -8.1,
+      icon: Clock,
+    },
+    {
+      label: "Satisfaction Score",
+      value: satisfaction?.avgRating ? `${satisfaction.avgRating} / 5` : "N/A",
+      change: satisfaction?.avgRating ? 5.2 : 0,
+      icon: Smile,
+    },
+  ];
 
-  const toggleAssign = (caseId: string, worker: string) => {
-    setAssignedMap(prev => {
-      const current = prev[caseId] || [];
-      return {
-        ...prev,
-        [caseId]: current.includes(worker)
-          ? current.filter(w => w !== worker)
-          : [...current, worker],
-      };
-    });
-  };
-
-  const selectedAssignment = assignments.find(a => a.caseId === selectedCase);
-  const selectedCaseData = mockCases.find(c => c.id === selectedCase);
+  if (loading) {
+    return (
+      <div className="glass rounded-2xl p-8 text-center">
+        <p className="text-xs text-muted-foreground">Loading dashboard...</p>
+      </div>
+    );
+  }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="glass rounded-2xl overflow-hidden"
-    >
-      <div className="px-5 pt-5 pb-3">
-        <div className="flex items-center gap-2 mb-1">
-          <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Users size={16} className="text-primary" />
-          </div>
-          <h2 className="text-base font-semibold text-foreground">AI Assignment Engine</h2>
-        </div>
-        <p className="text-xs text-muted-foreground">AI recommends optimal caseworker teams per case based on expertise, load & history</p>
-      </div>
+    <div className="max-w-4xl mx-auto space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <h2 className="text-lg font-semibold text-foreground mb-1">Executive Overview</h2>
+        <p className="text-sm text-muted-foreground">KPI dashboard & strategic oversight</p>
+      </motion.div>
 
-      <div className="px-5 pb-5">
-        {/* Case selector */}
-        <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
-          {assignments.map((a) => {
-            const c = mockCases.find(mc => mc.id === a.caseId)!;
-            const colors = taxonomyColors[c.topic];
-            return (
-              <button
-                key={a.caseId}
-                onClick={() => setSelectedCase(a.caseId)}
-                className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                  selectedCase === a.caseId
-                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                    : `${colors.bg} ${colors.text} ${colors.border}`
-                }`}
-              >
-                {a.caseId}
-              </button>
-            );
-          })}
-        </div>
-
-        {selectedCaseData && selectedAssignment && (
-          <AnimatePresence mode="wait">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {metrics.map((m, i) => {
+          const Icon = m.icon;
+          const isPositive = m.change > 0;
+          const isGood = m.label === "Avg Resolution Time" ? !isPositive : isPositive;
+          const TrendIcon = isPositive ? TrendingUp : TrendingDown;
+          return (
             <motion.div
-              key={selectedCase}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 8 }}
+              key={m.label}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              className="glass rounded-xl p-5"
             >
-              {/* Case info */}
-              <div className="p-3 rounded-xl bg-secondary/40 border border-border mb-4">
-                <p className="text-xs font-medium text-foreground mb-0.5">{selectedCaseData.title}</p>
-                <p className="text-[10px] text-muted-foreground">{selectedCaseData.problem.slice(0, 100)}…</p>
-              </div>
-
-              {/* AI recommendation */}
-              <div className="p-3 rounded-xl bg-primary/5 border border-primary/15 mb-4">
-                <div className="flex items-center gap-1.5 mb-1.5">
-                  <Brain size={12} className="text-primary" />
-                  <span className="text-[10px] font-semibold text-primary uppercase tracking-wide">AI Recommendation</span>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Icon size={16} className="text-primary" />
                 </div>
-                <p className="text-xs text-foreground leading-relaxed">{selectedAssignment.aiReason}</p>
+                <span className="text-xs font-medium text-muted-foreground">{m.label}</span>
               </div>
-
-              {/* Team assignment grid */}
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Assign Team Members</p>
-              <div className="grid grid-cols-2 gap-2">
-                {caseworkers.map((worker) => {
-                  const isAssigned = (assignedMap[selectedCase!] || []).includes(worker.name);
-                  const isRecommended = selectedAssignment.recommended.includes(worker.name);
-
-                  return (
-                    <motion.button
-                      key={worker.name}
-                      onClick={() => toggleAssign(selectedCase!, worker.name)}
-                      whileTap={{ scale: 0.97 }}
-                      className={`relative flex items-center gap-2.5 p-3 rounded-xl border transition-all text-left ${
-                        isAssigned
-                          ? "bg-primary/8 border-primary/25 shadow-sm"
-                          : "bg-secondary/40 border-transparent hover:border-sage-200"
-                      }`}
-                    >
-                      {isRecommended && (
-                        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
-                          <Sparkles size={8} className="text-primary-foreground" />
-                        </div>
-                      )}
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold shrink-0 ${
-                        isAssigned ? "bg-primary text-primary-foreground" : "bg-sage-200 text-sage-600"
-                      }`}>
-                        {isAssigned ? <Check size={14} /> : worker.avatar}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-medium text-foreground truncate">{worker.name}</p>
-                        <p className="text-[10px] text-muted-foreground truncate">{worker.specialty}</p>
-                        <p className="text-[10px] text-muted-foreground">{worker.load} active cases</p>
-                      </div>
-                    </motion.button>
-                  );
-                })}
+              <p className="text-2xl font-bold text-foreground mb-1">{m.value}</p>
+              <div className={`flex items-center gap-1 text-xs font-medium ${isGood ? "text-primary" : "text-destructive"}`}>
+                <TrendIcon size={12} />
+                {Math.abs(m.change)}%
+                <span className="text-muted-foreground ml-1">vs last month</span>
               </div>
-
-              {/* Assigned summary */}
-              {(assignedMap[selectedCase!] || []).length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="mt-3 flex items-center justify-between p-3 rounded-xl bg-primary/5 border border-primary/15"
-                >
-                  <div className="flex items-center gap-2">
-                    <UserPlus size={14} className="text-primary" />
-                    <span className="text-xs text-foreground font-medium">
-                      {(assignedMap[selectedCase!] || []).length} assigned
-                    </span>
-                    <span className="text-[10px] text-muted-foreground">
-                      {(assignedMap[selectedCase!] || []).join(", ")}
-                    </span>
-                  </div>
-                  <button className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary text-primary-foreground text-[10px] font-medium">
-                    Confirm <ArrowRight size={10} />
-                  </button>
-                </motion.div>
-              )}
             </motion.div>
-          </AnimatePresence>
-        )}
+          );
+        })}
       </div>
-    </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="glass rounded-xl p-5"
+      >
+        <h3 className="text-sm font-semibold text-foreground mb-4">Cases This Week</h3>
+        <div className="h-48">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={volume} barSize={28}>
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "hsl(160, 10%, 50%)" }} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "hsl(160, 10%, 50%)" }} />
+              <Tooltip
+                contentStyle={{
+                  background: "hsla(0, 0%, 100%, 0.9)",
+                  border: "1px solid hsl(150, 15%, 88%)",
+                  borderRadius: "8px",
+                  fontSize: "12px",
+                }}
+              />
+              <Bar dataKey="cases" fill="hsl(152, 45%, 42%)" radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </motion.div>
+    </div>
   );
 }

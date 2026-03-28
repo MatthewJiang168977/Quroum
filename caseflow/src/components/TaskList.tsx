@@ -1,21 +1,86 @@
-import { useState } from "react";
-import { Role, RoleTask, roleTasks } from "@/lib/mockData";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle2, Circle, Link2 } from "lucide-react";
+import { apiGet } from "../lib/api";
 
 interface TaskListProps {
-  role: Role;
+  role: string;
 }
 
-const roleDescriptions: Record<Role, string> = {
+const roleDescriptions: Record<string, string> = {
   caseworker: "Your fieldwork & follow-ups",
   manager: "Assignments & oversight",
   approver: "Approvals & sign-offs",
   exec: "Strategic actions",
 };
 
+interface Task {
+  id: string;
+  label: string;
+  done: boolean;
+  caseId?: string;
+  caseNumber?: string;
+  dueDate?: string;
+}
+
 export default function TaskList({ role }: TaskListProps) {
-  const [tasks, setTasks] = useState<RoleTask[]>(roleTasks[role]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchTasks() {
+      try {
+        const casesRes = await apiGet("/cases");
+        const cases = casesRes.cases || [];
+
+        // Generate tasks from real case data
+        const generated: Task[] = [];
+
+        cases.forEach((c: any) => {
+          // Overdue cases become urgent tasks
+          if (c.isOverdue) {
+            generated.push({
+              id: `overdue-${c._id}`,
+              label: `OVERDUE: ${c.subject}`,
+              done: false,
+              caseId: c._id,
+              caseNumber: c.caseNumber || c._id.slice(-6),
+              dueDate: c.deadline,
+            });
+          }
+
+          // Next steps become tasks
+          if (c.nextSteps && c.status !== "resolved" && c.status !== "closed") {
+            generated.push({
+              id: `next-${c._id}`,
+              label: c.nextSteps,
+              done: false,
+              caseId: c._id,
+              caseNumber: c.caseNumber || c._id.slice(-6),
+              dueDate: c.deadline,
+            });
+          }
+
+          // Resolved cases are completed tasks
+          if (c.status === "resolved" || c.status === "closed") {
+            generated.push({
+              id: `resolved-${c._id}`,
+              label: `Case resolved: ${c.subject}`,
+              done: true,
+              caseId: c._id,
+              caseNumber: c.caseNumber || c._id.slice(-6),
+            });
+          }
+        });
+
+        setTasks(generated);
+      } catch (err) {
+        console.error("Failed to fetch tasks:", err);
+      }
+      setLoading(false);
+    }
+    fetchTasks();
+  }, [role]);
 
   const toggle = (id: string) => {
     setTasks((prev) =>
@@ -26,6 +91,14 @@ export default function TaskList({ role }: TaskListProps) {
   const pending = tasks.filter((t) => !t.done);
   const completed = tasks.filter((t) => t.done);
 
+  if (loading) {
+    return (
+      <div className="glass rounded-xl p-5">
+        <p className="text-xs text-muted-foreground">Loading tasks...</p>
+      </div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -35,7 +108,7 @@ export default function TaskList({ role }: TaskListProps) {
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-sm font-semibold text-foreground">Your Tasks</h3>
-          <p className="text-xs text-muted-foreground">{roleDescriptions[role]}</p>
+          <p className="text-xs text-muted-foreground">{roleDescriptions[role] || "Tasks & follow-ups"}</p>
         </div>
         <span className="text-xs font-medium bg-primary/10 text-primary px-2 py-0.5 rounded-full">
           {pending.length} pending
@@ -56,10 +129,10 @@ export default function TaskList({ role }: TaskListProps) {
             <div className="flex-1 min-w-0">
               <p className="text-sm text-foreground leading-snug">{task.label}</p>
               <div className="flex items-center gap-2 mt-0.5">
-                {task.caseId && (
+                {task.caseNumber && (
                   <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
                     <Link2 size={10} />
-                    {task.caseId}
+                    {task.caseNumber}
                   </span>
                 )}
                 {task.dueDate && (
