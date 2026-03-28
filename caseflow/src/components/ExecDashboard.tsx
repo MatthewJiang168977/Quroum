@@ -1,0 +1,97 @@
+import { execMetrics, chartData } from "@/lib/mockData";
+import { motion } from "framer-motion";
+import { TrendingUp, TrendingDown, Clock, Smile, BarChart3 } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
+
+const metrics = [
+  {
+    label: "Cases Processed",
+    value: execMetrics.casesProcessed.value.toLocaleString(),
+    change: execMetrics.casesProcessed.change,
+    icon: BarChart3,
+  },
+  {
+    label: "Avg Resolution Time",
+    value: `${execMetrics.avgResolutionTime.value} ${execMetrics.avgResolutionTime.unit}`,
+    change: execMetrics.avgResolutionTime.change,
+    icon: Clock,
+  },
+  {
+    label: "Satisfaction Score",
+    value: `${execMetrics.satisfactionScore.value} / ${execMetrics.satisfactionScore.max}`,
+    change: execMetrics.satisfactionScore.change,
+    icon: Smile,
+  },
+];
+
+export default function ExecDashboard() {
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <h2 className="text-lg font-semibold text-foreground mb-1">Executive Overview</h2>
+        <p className="text-sm text-muted-foreground">3 metrics that matter.</p>
+      </motion.div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {metrics.map((m, i) => {
+          const Icon = m.icon;
+          const isPositive = m.change > 0;
+          const isGood = m.label === "Avg Resolution Time" ? !isPositive : isPositive;
+          const TrendIcon = isPositive ? TrendingUp : TrendingDown;
+
+          return (
+            <motion.div
+              key={m.label}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              className="glass rounded-xl p-5"
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Icon size={16} className="text-primary" />
+                </div>
+                <span className="text-xs font-medium text-muted-foreground">{m.label}</span>
+              </div>
+              <p className="text-2xl font-bold text-foreground mb-1">{m.value}</p>
+              <div className={`flex items-center gap-1 text-xs font-medium ${isGood ? "text-primary" : "text-destructive"}`}>
+                <TrendIcon size={12} />
+                {Math.abs(m.change)}%
+                <span className="text-muted-foreground ml-1">vs last month</span>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="glass rounded-xl p-5"
+      >
+        <h3 className="text-sm font-semibold text-foreground mb-4">Cases This Week</h3>
+        <div className="h-48">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData.weekly} barSize={28}>
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "hsl(160, 10%, 50%)" }} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "hsl(160, 10%, 50%)" }} />
+              <Tooltip
+                contentStyle={{
+                  background: "hsla(0, 0%, 100%, 0.9)",
+                  border: "1px solid hsl(150, 15%, 88%)",
+                  borderRadius: "8px",
+                  fontSize: "12px",
+                }}
+              />
+              <Bar dataKey="cases" fill="hsl(152, 45%, 42%)" radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </motion.div>
+    </div>
+  );
+}

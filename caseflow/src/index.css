@@ -1,0 +1,104 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 150 20% 96%;
+    --foreground: 160 30% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 160 30% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 160 30% 12%;
+
+    --primary: 152 45% 42%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 150 18% 90%;
+    --secondary-foreground: 160 30% 18%;
+
+    --muted: 150 15% 92%;
+    --muted-foreground: 160 10% 50%;
+
+    --accent: 152 40% 48%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 150 15% 88%;
+    --input: 150 15% 88%;
+    --ring: 152 45% 42%;
+
+    --radius: 0.75rem;
+
+    /* Custom tokens */
+    --sage-50: 150 20% 97%;
+    --sage-100: 150 18% 93%;
+    --sage-200: 150 15% 88%;
+    --sage-300: 150 12% 78%;
+    --sage-400: 150 10% 60%;
+    --sage-500: 152 15% 45%;
+    --sage-600: 155 20% 35%;
+    --sage-700: 158 25% 25%;
+    --sage-800: 160 30% 18%;
+    --sage-900: 160 30% 12%;
+
+    --mint: 162 50% 50%;
+    --mint-light: 162 45% 88%;
+
+    --priority-high: 0 85% 60%;
+    --priority-medium: 38 92% 55%;
+    --priority-low: 150 15% 65%;
+
+    --status-pending: 38 92% 55%;
+    --status-progress: 210 80% 55%;
+    --status-approval: 280 60% 55%;
+    --status-resolved: 152 45% 42%;
+
+    --glass-bg: 0 0% 100% / 0.7;
+    --glass-border: 0 0% 100% / 0.3;
+    --glass-shadow: 150 20% 40% / 0.08;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+@layer utilities {
+  .glass {
+    background: hsla(var(--glass-bg));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid hsla(var(--glass-border));
+    box-shadow: 0 8px 32px hsla(var(--glass-shadow));
+  }
+
+  .glass-subtle {
+    background: hsla(0, 0%, 100%, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid hsla(0, 0%, 100%, 0.2);
+  }
+}
