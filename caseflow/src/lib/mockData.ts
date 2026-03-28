@@ -44,29 +44,146 @@ export interface RoleTask {
 
 export const roleTasks: Record<Role, RoleTask[]> = {
   caseworker: [
-    { id: "t1", label: "Follow up on QR-1042 inspection", done: false, caseId: "QR-1042", dueDate: "2026-03-28" },
-    { id: "t2", label: "Upload evidence for QR-1046", done: false, caseId: "QR-1046", dueDate: "2026-03-29" },
-    { id: "t3", label: "Contact tenant association", done: true, caseId: "QR-1042" },
-    { id: "t4", label: "Complete site visit notes", done: false, dueDate: "2026-03-30" },
+    { id: "cw1", label: "Follow up on QR-1042 inspection", done: false, caseId: "QR-1042", dueDate: "2026-03-28" },
+    { id: "cw2", label: "Upload evidence for QR-1046", done: false, caseId: "QR-1046", dueDate: "2026-03-29" },
+    { id: "cw3", label: "Complete site visit notes — 14th St", done: false, dueDate: "2026-03-30" },
+    { id: "cw4", label: "Log ADA assessment outcome", done: false, caseId: "QR-1046", dueDate: "2026-03-31" },
+    { id: "cw5", label: "Contact tenant association", done: true, caseId: "QR-1042" },
+    { id: "cw6", label: "Sync field notes to CRM", done: false, dueDate: "2026-03-28" },
   ],
   manager: [
-    { id: "t5", label: "Review AI assignment for QR-1043", done: false, caseId: "QR-1043", dueDate: "2026-03-28" },
-    { id: "t6", label: "Approve fast-track QR-1044", done: false, caseId: "QR-1044", dueDate: "2026-03-28" },
-    { id: "t7", label: "Reassign unassigned high-priority cases", done: false, dueDate: "2026-03-28" },
-    { id: "t8", label: "Weekly caseload review", done: true },
-    { id: "t9", label: "Escalation report for housing violations", done: false, dueDate: "2026-03-29" },
+    { id: "mg1", label: "Review AI assignment for QR-1043", done: false, caseId: "QR-1043", dueDate: "2026-03-28" },
+    { id: "mg2", label: "Approve fast-track QR-1044", done: false, caseId: "QR-1044", dueDate: "2026-03-28" },
+    { id: "mg3", label: "Rebalance caseload — unassigned queue", done: false, dueDate: "2026-03-29" },
+    { id: "mg4", label: "Escalation report for housing violations", done: false, dueDate: "2026-03-29" },
+    { id: "mg5", label: "1:1 with Priya on benefits backlog", done: false, dueDate: "2026-04-01" },
+    { id: "mg6", label: "Weekly caseload review", done: true },
   ],
   approver: [
-    { id: "t10", label: "Review Rodriguez family benefits", done: false, caseId: "QR-1044", dueDate: "2026-03-28" },
-    { id: "t11", label: "Sign off on inspection results", done: false, dueDate: "2026-03-29" },
-    { id: "t12", label: "Verify compliance documentation", done: true },
+    { id: "ap1", label: "Sign legislative reply drafts (batch 12)", done: false, dueDate: "2026-03-28" },
+    { id: "ap2", label: "Dual review — Rodriguez benefits QR-1044", done: false, caseId: "QR-1044", dueDate: "2026-03-28" },
+    { id: "ap3", label: "Approve inspection sign-off package", done: false, dueDate: "2026-03-29" },
+    { id: "ap4", label: "Redline high-risk exposure memo", done: false, caseId: "QR-1042", dueDate: "2026-03-30" },
+    { id: "ap5", label: "Archive approved correspondence set", done: true },
   ],
   exec: [
-    { id: "t13", label: "Review monthly KPI report", done: false, dueDate: "2026-03-30" },
-    { id: "t14", label: "Approve budget for Q2 hiring", done: false, dueDate: "2026-04-01" },
-    { id: "t15", label: "Sign off on policy update", done: true },
+    { id: "ex1", label: "Board briefing — constituent volume", done: false, dueDate: "2026-03-30" },
+    { id: "ex2", label: "Approve Q2 hiring & AI vendor spend", done: false, dueDate: "2026-04-01" },
+    { id: "ex3", label: "Policy council — response SLAs", done: false, dueDate: "2026-04-02" },
+    { id: "ex4", label: "Review crisis comms playbook update", done: false, dueDate: "2026-04-03" },
+    { id: "ex5", label: "Sign off on monthly KPI packet", done: true, dueDate: "2026-03-27" },
   ],
 };
+
+/** Channel mix for analytics / homepage */
+export const channelBreakdown = [
+  { name: "Email", value: 45, fill: "#819A91" },
+  { name: "Social Media", value: 25, fill: "#A7C1A8" },
+  { name: "Forms / Mail", value: 20, fill: "#D1D8BE" },
+  { name: "Voicemail", value: 10, fill: "#5c7a72" },
+];
+
+/** Most-used materials per case (executive pie) */
+export const materialTypeBreakdown = [
+  { name: "Written testimony", value: 32, fill: "#819A91" },
+  { name: "Photos / exhibits", value: 28, fill: "#A7C1A8" },
+  { name: "Agency correspondence", value: 22, fill: "#D1D8BE" },
+  { name: "Audio / video", value: 12, fill: "#6b8f83" },
+  { name: "Forms & filings", value: 6, fill: "#c4d4c5" },
+];
+
+export const sentimentTrendSeries = [
+  { week: "W1", positive: 42, negative: 24, neutral: 31 },
+  { week: "W2", positive: 45, negative: 22, neutral: 33 },
+  { week: "W3", positive: 48, negative: 26, neutral: 30 },
+  { week: "W4", positive: 52, negative: 28, neutral: 32 },
+  { week: "W5", positive: 55, negative: 25, neutral: 34 },
+  { week: "W6", positive: 50, negative: 27, neutral: 35 },
+];
+
+export const messageVolumeWeek = [
+  { day: "Mon", inbound: 118, outbound: 92, ai: 44 },
+  { day: "Tue", inbound: 132, outbound: 101, ai: 52 },
+  { day: "Wed", inbound: 124, outbound: 98, ai: 48 },
+  { day: "Thu", inbound: 141, outbound: 110, ai: 58 },
+  { day: "Fri", inbound: 128, outbound: 95, ai: 51 },
+  { day: "Sat", inbound: 64, outbound: 38, ai: 22 },
+  { day: "Sun", inbound: 52, outbound: 31, ai: 18 },
+];
+
+export const homeKpis = [
+  { label: "Total Messages", value: "2,847", delta: "+12%", sub: "this week", icon: "mail" as const },
+  { label: "Pending Drafts", value: "34", delta: "8 urgent", sub: "awaiting edit", icon: "draft" as const },
+  { label: "Awaiting Approval", value: "12", delta: null, sub: "legislative queue", icon: "clock" as const },
+  { label: "Resolved Today", value: "89", delta: "+23%", sub: "vs yesterday", icon: "check" as const },
+];
+
+export interface OrchestrationAgent {
+  id: string;
+  name: string;
+  role: Role;
+  status: "idle" | "running" | "queued";
+  lastSync: string;
+  description: string;
+}
+
+export const orchestrationAgents: OrchestrationAgent[] = [
+  {
+    id: "a1",
+    name: "Intake & triage",
+    role: "caseworker",
+    status: "running",
+    lastSync: "2m ago",
+    description: "Classifies channel, urgency, and suggested route.",
+  },
+  {
+    id: "a2",
+    name: "Assignment optimizer",
+    role: "manager",
+    status: "idle",
+    lastSync: "14m ago",
+    description: "Matches caseload to staff skills and SLAs.",
+  },
+  {
+    id: "a3",
+    name: "Draft & compliance",
+    role: "approver",
+    status: "queued",
+    lastSync: "1h ago",
+    description: "Generates replies and flags policy conflicts.",
+  },
+  {
+    id: "a4",
+    name: "Executive signals",
+    role: "exec",
+    status: "idle",
+    lastSync: "32m ago",
+    description: "Rolls up KPIs, risk, and anomaly alerts.",
+  },
+];
+
+export const marketDemandSignals = [
+  { topic: "Housing & code enforcement", demandIndex: 94, change: "+18%", note: "Spike in mold / ADA complaints" },
+  { topic: "Benefits & SNAP", demandIndex: 81, change: "+6%", note: "Seasonal enrollment window" },
+  { topic: "Infrastructure / permits", demandIndex: 62, change: "-4%", note: "Backlog clearing after storm work" },
+  { topic: "Environmental noise", demandIndex: 58, change: "+11%", note: "Industrial zone petitions" },
+];
+
+export const topTopicsBars = [
+  { topic: "Healthcare", pct: 78 },
+  { topic: "Infrastructure", pct: 64 },
+  { topic: "Education", pct: 52 },
+  { topic: "Housing", pct: 48 },
+  { topic: "Benefits", pct: 41 },
+];
+
+export const recentMessagesFeed = [
+  { id: "m1", subject: "Medicare billing dispute — follow-up", from: "Jane Mitchell", channel: "Email", sentiment: "negative" as const, priority: "high" as const, ago: "12 min ago" },
+  { id: "m2", subject: "Praise for field office staff", from: "Community Board 4", channel: "Social", sentiment: "positive" as const, priority: "low" as const, ago: "28 min ago" },
+  { id: "m3", subject: "Permit status — Oak Ave closure", from: "Local Business Assoc.", channel: "Form", sentiment: "neutral" as const, priority: "medium" as const, ago: "41 min ago" },
+  { id: "m4", subject: "Urgent: water main break", from: "Alex R.", channel: "Voicemail", sentiment: "negative" as const, priority: "high" as const, ago: "55 min ago" },
+  { id: "m5", subject: "Scholarship program inquiry", from: "Parent coalition", channel: "Email", sentiment: "positive" as const, priority: "low" as const, ago: "1h ago" },
+];
 
 export interface CalendarEvent {
   id: string;

@@ -135,12 +135,12 @@ export default function OutcomePrediction() {
       </div>
 
       {/* AI Outcome Predictions */}
-      <div className="glass rounded-xl p-5">
+      <div className="surface-card rounded-xl p-5">
         <div className="flex items-center gap-2 mb-1">
           <Sparkles size={14} className="text-primary" />
-          <h3 className="text-sm font-semibold text-foreground">AI Outcome Predictions</h3>
+          <h3 className="text-sm font-semibold text-foreground">AI outcome predictions</h3>
         </div>
-        <p className="text-xs text-muted-foreground mb-4">Ranked by predicted exposure & risk</p>
+        <p className="text-xs text-muted-foreground mb-4">Ranked by predicted exposure and risk</p>
 
         <div className="space-y-3">
           {ranked.map((c, i) => {
