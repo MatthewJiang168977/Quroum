@@ -15,7 +15,7 @@ export default function OutcomePrediction() {
     []
   );
 
-  const maxExposure = Math.max(...ranked.map((c) => c.predictedExposure));
+  const maxExposure = Math.max(1, ...ranked.map((c) => c.predictedExposure));
 
   return (
     <motion.div
