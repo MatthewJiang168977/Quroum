@@ -18,7 +18,7 @@ Quorum transforms messy inputs — text, voice, images — into clear decisions 
 Both studying at NYU.
 
 ---
-
+<!--
 ## Why we built this
 
 Government offices and legal teams are drowning in cases. Congress receives 80M messages per year. Staff spend most of their time on admin instead of helping people. Legacy tools are decades old — creating delays, errors, and low public trust.
@@ -26,7 +26,7 @@ Government offices and legal teams are drowning in cases. Congress receives 80M 
 **The gap we identified:** AI can analyze, but no system actually executes decisions. So we built one.
 
 ---
-
+-->
 ## Key features
 
 - **Multimodal intake** — text, voice, and image input processed through a single AI pipeline
